@@ -7,12 +7,12 @@ from .base import ASPP, get_syncbn
 
 class dec_deeplabv3(nn.Module):
     def __init__(
-        self,
-        in_planes,
-        num_classes=19,
-        inner_planes=256,
-        sync_bn=False,
-        dilations=(12, 24, 36),
+            self,
+            in_planes,
+            num_classes=19,
+            inner_planes=256,
+            sync_bn=False,
+            dilations=(12, 24, 36),
     ):
         super(dec_deeplabv3, self).__init__()
 
@@ -44,13 +44,13 @@ class dec_deeplabv3(nn.Module):
 
 class dec_deeplabv3_plus(nn.Module):
     def __init__(
-        self,
-        in_planes,
-        num_classes=19,
-        inner_planes=256,
-        sync_bn=False,
-        dilations=(12, 24, 36),
-        rep_head=True,
+            self,
+            in_planes,
+            num_classes=19,
+            inner_planes=256,
+            sync_bn=False,
+            dilations=(12, 24, 36),
+            rep_head=True,
     ):
         super(dec_deeplabv3_plus, self).__init__()
 
@@ -92,7 +92,6 @@ class dec_deeplabv3_plus(nn.Module):
         )
 
         if self.rep_head:
-
             self.representation = nn.Sequential(
                 nn.Conv2d(512, 256, kernel_size=3, stride=1, padding=1, bias=True),
                 norm_layer(256),
