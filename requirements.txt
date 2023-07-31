@@ -3,6 +3,6 @@ easydict
 tensorboardX
 opencv-python
 scipy
-sklearn
+scikit-learn
 scikit-image
 einops
