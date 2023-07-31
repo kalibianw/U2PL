@@ -235,10 +235,12 @@ def get_criterion(cfg):
         else 0
     )
     ignore_index = cfg["dataset"]["ignore_label"]
+    # for Cityscapes
     if cfg_criterion["type"] == "ohem":
         criterion = CriterionOhem(
             aux_weight, ignore_index=ignore_index, **cfg_criterion["kwargs"]
         )
+    # for Pascal
     else:
         criterion = Criterion(
             aux_weight, ignore_index=ignore_index, **cfg_criterion["kwargs"]
@@ -250,6 +252,8 @@ def get_criterion(cfg):
 class Criterion(nn.Module):
     def __init__(self, aux_weight, ignore_index=255, use_weight=False):
         super(Criterion, self).__init__()
+
+        # Only for cityscapes
         self._aux_weight = aux_weight
         self._ignore_index = ignore_index
         self.use_weight = use_weight

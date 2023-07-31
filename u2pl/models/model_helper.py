@@ -15,6 +15,7 @@ class ModelBuilder(nn.Module):
         self.encoder = self._build_encoder(net_cfg["encoder"])
         self.decoder = self._build_decoder(net_cfg["decoder"])
 
+        # {'aux_plane': 1024, 'loss_weight': 0.4} when Cityscapes
         self._use_auxloss = True if net_cfg.get("aux_loss", False) else False
         self.fpn = True if net_cfg["encoder"]["kwargs"].get("fpn", False) else False
         if self._use_auxloss:

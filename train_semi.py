@@ -166,6 +166,7 @@ def main():
         memobank.append([torch.zeros(0, 256)])
         queue_size.append(30000)
         queue_ptrlis.append(torch.zeros(1, dtype=torch.long))
+    # for background class?
     queue_size[0] = 50000
 
     # build prototype
@@ -285,6 +286,7 @@ def train(
         image_u, _ = next(loader_u_iter)
         image_u = image_u.cuda()
 
+        # only for Pascal
         if epoch < cfg["trainer"].get("sup_only_epoch", 1):
             # contra_flag = "none"
             # forward
@@ -340,6 +342,8 @@ def train(
             num_labeled = len(image_l)
             image_all = torch.cat((image_l, image_u_aug))
             outs = model(image_all)
+
+            # Prediction & Representation
             pred_all, rep_all = outs["pred"], outs["rep"]
             pred_l, pred_u = pred_all[:num_labeled], pred_all[num_labeled:]
             pred_l_large = F.interpolate(
