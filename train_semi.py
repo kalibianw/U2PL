@@ -286,7 +286,7 @@ def train(
         image_u = image_u.cuda()
 
         if epoch < cfg["trainer"].get("sup_only_epoch", 1):
-            contra_flag = "none"
+            # contra_flag = "none"
             # forward
             outs = model(image_l)
             pred, rep = outs["pred"], outs["rep"]
@@ -388,7 +388,7 @@ def train(
             )
 
             # contrastive loss using unreliable pseudo labels
-            contra_flag = "none"
+            # contra_flag = "none"
             if cfg["trainer"].get("contrastive", False):
                 cfg_contra = cfg["trainer"]["contrastive"]
                 contra_flag = "{}:{}".format(
@@ -463,53 +463,53 @@ def train(
                         size=pred_all.shape[2:],
                         mode="nearest",
                     )
-
-                if cfg_contra.get("binary", False):
-                    contra_flag += " BCE"
-                    contra_loss = compute_binary_memobank_loss(
-                        rep_all,
-                        torch.cat((label_l_small, label_u_small)).long(),
-                        low_mask_all,
-                        high_mask_all,
-                        prob_all_teacher.detach(),
-                        cfg_contra,
-                        memobank,
-                        queue_ptrlis,
-                        queue_size,
-                        rep_all_teacher.detach(),
-                    )
-                else:
-                    if not cfg_contra.get("anchor_ema", False):
-                        new_keys, contra_loss = compute_contra_memobank_loss(
-                            rep_all,
-                            label_l_small.long(),
-                            label_u_small.long(),
-                            prob_l_teacher.detach(),
-                            prob_u_teacher.detach(),
-                            low_mask_all,
-                            high_mask_all,
-                            cfg_contra,
-                            memobank,
-                            queue_ptrlis,
-                            queue_size,
-                            rep_all_teacher.detach(),
-                        )
-                    else:
-                        prototype, new_keys, contra_loss = compute_contra_memobank_loss(
-                            rep_all,
-                            label_l_small.long(),
-                            label_u_small.long(),
-                            prob_l_teacher.detach(),
-                            prob_u_teacher.detach(),
-                            low_mask_all,
-                            high_mask_all,
-                            cfg_contra,
-                            memobank,
-                            queue_ptrlis,
-                            queue_size,
-                            rep_all_teacher.detach(),
-                            prototype,
-                        )
+                #
+                # if cfg_contra.get("binary", False):
+                #     contra_flag += " BCE"
+                #     contra_loss = compute_binary_memobank_loss(
+                #         rep_all,
+                #         torch.cat((label_l_small, label_u_small)).long(),
+                #         low_mask_all,
+                #         high_mask_all,
+                #         prob_all_teacher.detach(),
+                #         cfg_contra,
+                #         memobank,
+                #         queue_ptrlis,
+                #         queue_size,
+                #         rep_all_teacher.detach(),
+                #     )
+                # else:
+                #    if not cfg_contra.get("anchor_ema", False):
+                new_keys, contra_loss = compute_contra_memobank_loss(
+                    rep_all,
+                    label_l_small.long(),
+                    label_u_small.long(),
+                    prob_l_teacher.detach(),
+                    prob_u_teacher.detach(),
+                    low_mask_all,
+                    high_mask_all,
+                    cfg_contra,
+                    memobank,
+                    queue_ptrlis,
+                    queue_size,
+                    rep_all_teacher.detach(),
+                )
+                #    else:
+                #        prototype, new_keys, contra_loss = compute_contra_memobank_loss(
+                #            rep_all,
+                #            label_l_small.long(),
+                #            label_u_small.long(),
+                #            prob_l_teacher.detach(),
+                #            prob_u_teacher.detach(),
+                #            low_mask_all,
+                #            high_mask_all,
+                #            cfg_contra,
+                #            memobank,
+                #            queue_ptrlis,
+                #            queue_size,
+                #            rep_all_teacher.detach(),
+                #            prototype,
+                #        )
 
                 dist.all_reduce(contra_loss)
                 contra_loss = (
