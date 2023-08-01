@@ -41,7 +41,7 @@ parser = argparse.ArgumentParser(description="Semi-Supervised Semantic Segmentat
 parser.add_argument("--config", type=str, default="config.yaml")
 parser.add_argument("--local_rank", type=int, default=0)
 parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--port", default=None, type=int)
+parser.add_argument("--port", type=int, default=None)
 
 
 def main():
