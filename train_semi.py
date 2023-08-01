@@ -288,7 +288,7 @@ def train(
 
         # only for Pascal
         if epoch < cfg["trainer"].get("sup_only_epoch", 1):
-            # contra_flag = "none"
+            contra_flag = "none"
             # forward
             outs = model(image_l)
             pred, rep = outs["pred"], outs["rep"]
