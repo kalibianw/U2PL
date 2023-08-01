@@ -205,7 +205,7 @@ def train(
         learning_rates.update(lr[0])
         lr_scheduler.step()
 
-        image, label = data_loader_iter.next()
+        image, label = next(data_loader_iter)
         batch_size, h, w = label.size()
         image, label = image.cuda(), label.cuda()
         outs = model(image)
