@@ -1,14 +1,19 @@
 import logging
 import os
+import sys
 import time
 from argparse import ArgumentParser
 
+from matplotlib.gridspec import GridSpec
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.nn.parallel
 import torch.optim
 import torch.utils.data
+from torchvision.transforms import ToPILImage
 import yaml
 from PIL import Image
 from tqdm import tqdm
@@ -66,16 +71,24 @@ def main():
     assert num_classes > 1
 
     os.makedirs(args.save_folder, exist_ok=True)
-    gray_folder = os.path.join(args.save_folder, "gray")
+    gray_folder = (
+        os.path.join(*[args.save_folder, "color", *args.config.split(sep="/")[1:4]])
+        if len(args.config.split(sep="/")) > 4
+        else os.path.join(args.save_folder, "color")
+    )
     os.makedirs(gray_folder, exist_ok=True)
-    color_folder = os.path.join(args.save_folder, "color")
+    color_folder = (
+        os.path.join(*[args.save_folder, "color", *args.config.split(sep="/")[1:4]])
+        if len(args.config.split(sep="/")) > 4
+        else os.path.join(args.save_folder, "color")
+    )
     os.makedirs(color_folder, exist_ok=True)
 
-    cfg_dset = cfg["dataset"]
-    data_root, f_data_list = cfg_dset["val"]["data_root"], cfg_dset["val"]["data_list"]
+    # data_root, f_data_list = cfg_dset["val"]["data_root"], cfg_dset["val"]["data_list"]
     data_list = []
 
-    if "cityscapes" in data_root:
+    if "cityscapes" in cfg_dset["type"]:
+        data_root, f_data_list = "data/cityscapes", "data/splits/cityscapes/val.txt"
         for line in open(f_data_list, "r"):
             arr = [
                 line.strip(),
@@ -85,6 +98,7 @@ def main():
             data_list.append(arr)
 
     else:
+        data_root, f_data_list = "data/VOC2012", "data/splits/pascal/val.txt"
         for line in open(f_data_list, "r"):
             arr = [
                 "JPEGImages/{}.jpg".format(line.strip()),
@@ -110,36 +124,99 @@ def main():
 
     input_scale = [769, 769] if "cityscapes" in data_root else [513, 513]
     colormap = create_pascal_label_colormap()
+    label_names = [
+        "background",
+        "aeroplane",
+        "bicycle",
+        "bird",
+        "boat",
+        "bottle",
+        "bus",
+        "car",
+        "cat",
+        "chair",
+        "cow",
+        "dining table",
+        "dog",
+        "horse",
+        "motorbike",
+        "person",
+        "potted plant",
+        "sheep",
+        "sofa",
+        "train",
+        "tv/monitor",
+    ]
 
     model.eval()
     for image_path, label_path in tqdm(data_list):
         image_name = image_path.split("/")[-1]
 
-        image = Image.open(image_path).convert("RGB")
-        image = np.asarray(image).astype(np.float32)
-        h, w, _ = image.shape
-        image = (image - mean) / std
+        org_image = Image.open(image_path).convert("RGB")
+        org_image = np.asarray(org_image).astype(np.float32)
+        h, w, _ = org_image.shape
+        image = (org_image - mean) / std
         image = torch.Tensor(image).permute(2, 0, 1)
         image = image.unsqueeze(dim=0)
         image = F.interpolate(image, input_scale, mode="bilinear", align_corners=True)
+
+        gt = Image.open(
+            os.path.join(
+                "/Data1/jbchae/U2PL/data/VOC2012/SegmentationClass",
+                os.path.splitext(image_name)[0] + ".png",
+            )
+        ).convert("RGB")
+        gt = np.asarray(gt).astype("uint8")
 
         output = net_process(model, image)
         output = F.interpolate(output, (h, w), mode="bilinear", align_corners=True)
         mask = torch.argmax(output, dim=1).squeeze().cpu().numpy()
 
-        color_mask = Image.fromarray(colorful(mask, colormap))
-        color_mask.save(os.path.join(color_folder, image_name))
+        # color_mask = Image.fromarray(colorful(mask, colormap))
+        # color_mask.save(os.path.join(color_folder, image_name))
+        color_mask, labels = colorful(mask, colormap)
 
-        mask = Image.fromarray(mask)
-        mask.save(os.path.join(gray_folder, image_name))
+        fig = plt.figure()
+
+        gs = GridSpec(2, 2)
+
+        ax1 = fig.add_subplot(gs[0, :])
+        ax1.imshow(org_image.astype("uint8"))
+        ax1.axis("off")
+
+        ax2 = fig.add_subplot(gs[1, 0])
+        ax2.imshow(gt)
+        ax2.axis("off")
+
+        ax3 = fig.add_subplot(gs[1, 1])
+        ax3.imshow(color_mask.astype("uint8"))
+        ax3.axis("off")
+
+        norm_colormap = colormap / 255.0
+        fig.legend(
+            handles=[
+                mpatches.Patch(color=norm_colormap[label], label=f"{label_names[label]}")  # type: ignore
+                for label in labels
+            ]
+        )
+
+        fig.tight_layout()
+
+        fig.savefig(os.path.join(color_folder, image_name))
+        plt.cla()
+        plt.clf()
+        plt.close()
 
 
 def colorful(mask, colormap):
     color_mask = np.zeros([mask.shape[0], mask.shape[1], 3])
+    labels = list()
     for i in np.unique(mask):
         color_mask[mask == i] = colormap[i]
+        if i not in labels:
+            labels.append(i)
 
-    return np.uint8(color_mask)
+    return np.uint8(color_mask), labels
 
 
 def create_pascal_label_colormap():
@@ -147,7 +224,7 @@ def create_pascal_label_colormap():
     Returns:
         A colormap for visualizing segmentation results.
     """
-    colormap = 255 * np.ones((256, 3), dtype=np.uint8)
+    colormap = 255 * np.ones((21, 3), dtype=np.uint8)
     colormap[0] = [0, 0, 0]
     colormap[1] = [128, 0, 0]
     colormap[2] = [0, 128, 0]
