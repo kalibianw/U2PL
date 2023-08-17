@@ -6,6 +6,7 @@ lazy.sh
 # for here
 npy/
 dev/
+fig/
 data/cityscapes/
 data/VOC2012/
 events/
