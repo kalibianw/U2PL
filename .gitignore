@@ -4,6 +4,7 @@
 lazy.sh
 
 # for here
+npy/
 dev/
 data/cityscapes/
 data/VOC2012/
