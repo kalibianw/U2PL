@@ -233,19 +233,19 @@ def main():
 
 
 def train(
-        model,
-        model_teacher,
-        optimizer,
-        lr_scheduler,
-        sup_loss_fn,
-        loader_l,
-        loader_u,
-        epoch,
-        tb_logger,
-        logger,
-        memobank,
-        queue_ptrlis,
-        queue_size,
+    model,
+    model_teacher,
+    optimizer,
+    lr_scheduler,
+    sup_loss_fn,
+    loader_l,
+    loader_u,
+    epoch,
+    tb_logger,
+    logger,
+    memobank,
+    queue_ptrlis,
+    queue_size,
 ):
     global prototype
     ema_decay_origin = cfg["net"]["ema_decay"]
@@ -312,7 +312,7 @@ def train(
                 # copy student parameters to teacher
                 with torch.no_grad():
                     for t_params, s_params in zip(
-                            model_teacher.parameters(), model.parameters()
+                        model_teacher.parameters(), model.parameters()
                     ):
                         t_params.data = s_params.data
 
@@ -327,7 +327,7 @@ def train(
 
             # apply strong data augmentation: cutout, cutmix, or classmix
             if np.random.uniform(0, 1) < 0.5 and cfg["trainer"]["unsupervised"].get(
-                    "apply_aug", False
+                "apply_aug", False
             ):
                 image_u_aug, label_u_aug, logits_u_aug = generate_unsup_data(
                     image_u,
@@ -379,17 +379,16 @@ def train(
 
             # unsupervised loss
             drop_percent = cfg["trainer"]["unsupervised"].get("drop_percent", 100)
-            percent_unreliable = (100 - drop_percent) * (1 - epoch / cfg["trainer"]["epochs"])
-            drop_percent = 100 - percent_unreliable
-            unsup_loss = (
-                    compute_unsupervised_loss(
-                        pred_u_large,
-                        label_u_aug.clone(),
-                        drop_percent,
-                        pred_u_large_teacher.detach(),
-                    )
-                    * cfg["trainer"]["unsupervised"].get("loss_weight", 1)
+            percent_unreliable = (100 - drop_percent) * (
+                1 - epoch / cfg["trainer"]["epochs"]
             )
+            drop_percent = 100 - percent_unreliable
+            unsup_loss = compute_unsupervised_loss(
+                pred_u_large,
+                label_u_aug.clone(),
+                drop_percent,
+                pred_u_large_teacher.detach(),
+            ) * cfg["trainer"]["unsupervised"].get("loss_weight", 1)
 
             # contrastive loss using unreliable pseudo labels
             # contra_flag = "none"
@@ -397,7 +396,7 @@ def train(
                 cfg_contra = cfg["trainer"]["contrastive"]
                 contra_flag = f"{cfg_contra['low_rank']}:{cfg_contra['high_rank']}"
                 alpha_t = cfg_contra["low_entropy_threshold"] * (
-                        1 - epoch / cfg["trainer"]["epochs"]
+                    1 - epoch / cfg["trainer"]["epochs"]
                 )
 
                 with torch.no_grad():
@@ -408,7 +407,7 @@ def train(
                         entropy[label_u_aug != 255].cpu().numpy().flatten(), alpha_t
                     )
                     low_entropy_mask = (
-                            entropy.le(low_thresh).float() * (label_u_aug != 255).bool()
+                        entropy.le(low_thresh).float() * (label_u_aug != 255).bool()
                     )
 
                     high_thresh = np.percentile(
@@ -416,7 +415,7 @@ def train(
                         100 - alpha_t,
                     )
                     high_entropy_mask = (
-                            entropy.ge(high_thresh).float() * (label_u_aug != 255).bool()
+                        entropy.ge(high_thresh).float() * (label_u_aug != 255).bool()
                     )
 
                     low_mask_all = torch.cat(
@@ -515,9 +514,9 @@ def train(
 
                 dist.all_reduce(contra_loss)
                 contra_loss = (
-                        contra_loss
-                        / world_size
-                        * cfg["trainer"]["contrastive"].get("loss_weight", 1)
+                    contra_loss
+                    / world_size
+                    * cfg["trainer"]["contrastive"].get("loss_weight", 1)
                 )
 
             else:
@@ -536,17 +535,17 @@ def train(
                     1
                     - 1
                     / (
-                            i_iter
-                            - len(loader_l) * cfg["trainer"].get("sup_only_epoch", 1)
-                            + 1
+                        i_iter
+                        - len(loader_l) * cfg["trainer"].get("sup_only_epoch", 1)
+                        + 1
                     ),
                     ema_decay_origin,
                 )
                 for t_params, s_params in zip(
-                        model_teacher.parameters(), model.parameters()
+                    model_teacher.parameters(), model.parameters()
                 ):
                     t_params.data = (
-                            ema_decay * t_params.data + (1 - ema_decay) * s_params.data
+                        ema_decay * t_params.data + (1 - ema_decay) * s_params.data
                     )
 
         # gather all loss from different gpus
@@ -595,10 +594,10 @@ def train(
 
 
 def validate(
-        model,
-        data_loader,
-        epoch,
-        logger,
+    model,
+    data_loader,
+    epoch,
+    logger,
 ):
     model.eval()
     data_loader.sampler.set_epoch(epoch)
