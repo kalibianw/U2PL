@@ -125,7 +125,7 @@ def init_cutmix(crop_size):
 
 
 def padding_bbox_old(rectangles, size):
-    area = size ** 2
+    area = size**2
     y0, x0, y1, x1 = rectangles
     if (y1 - y0) >= (x1 - x0):
         y0 = max(y0 - 40, 0)
@@ -151,7 +151,7 @@ def padding_bbox_old(rectangles, size):
 
 
 def padding_bbox_new(rectangles, size):
-    area = 0.5 * (size ** 2)
+    area = 0.5 * (size**2)
     y0, x0, y1, x1 = rectangles
     h = y1 - y0
     w = x1 - x0
@@ -173,7 +173,7 @@ def padding_bbox_new(rectangles, size):
 
 
 def sliming_bbox(rectangles, size):
-    area = 0.5 * (size ** 2)
+    area = 0.5 * (size**2)
     y0, x0, y1, x1 = rectangles
     h = y1 - y0
     w = x1 - x0
@@ -207,7 +207,7 @@ def sliming_bbox(rectangles, size):
 
 
 def padding_bbox(rectangles, size):
-    area = 0.5 * (size ** 2)
+    area = 0.5 * (size**2)
     y0, x0, y1, x1 = rectangles
     h = y1 - y0
     w = x1 - x0
@@ -244,7 +244,7 @@ def padding_bbox(rectangles, size):
 def generate_cutmix(pred, cat, area_thresh, no_pad=False, no_slim=False):
     h = pred.shape[0]
     # print('h',h)
-    area_all = h ** 2
+    area_all = h**2
     pred = (pred == cat) * 1
     pred = label(pred)
     prop = regionprops(pred)
