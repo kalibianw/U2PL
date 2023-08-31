@@ -12,6 +12,7 @@ data/VOC2012/
 events/
 log/
 checkpoints/
+checkpoints_archive/
 viewer*/
 train.log.*
 debug.py
