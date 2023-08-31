@@ -46,7 +46,7 @@ def get_parser():
         help="evaluation model path",
     )
     parser.add_argument(
-        "--save_folder", type=str, default="viewer", help="results save folder"
+        "--save_folder", type=str, default="npy", help="results save folder"
     )
     return parser
 
@@ -77,7 +77,7 @@ def main():
 
     assert num_classes > 1
 
-    cm_fname = f"{cfg_dset['type']}_{cfg_dset['n_sup']}_cm.npy"
+    cm_fname = os.path.join(args.save_folder, f"{cfg_dset['type']}_{cfg_dset['n_sup']}_cm.npy")
     print(f"Write confusion matrix at {cm_fname}")
 
     # data_root, f_data_list = cfg_dset["val"]["data_root"], cfg_dset["val"]["data_list"]

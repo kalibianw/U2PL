@@ -5,6 +5,8 @@ import os
 
 from natsort import natsorted
 
+from argparse import ArgumentParser
+
 
 def get_label_names():
     label_names = [
@@ -96,16 +98,26 @@ def plot_confusion_matrix(
         plt.show()
 
 
-def main():
-    root_dir_path = "C:/Users/admin/Downloads/PASCAL VOC 2012 outputs/npy"
+def get_parser():
+    parser = ArgumentParser(description="Plot Confusion Matrix")
+    parser.add_argument(
+        "-n", "--npy", type=str, default="cm.npy", required=True, nargs="+"
+    )
+    parser.add_argument("-r", "--root_dir", type=str, default='')
 
-    for npy_name in natsorted(os.listdir(root_dir_path)):
-        arr = np.load(os.path.join(root_dir_path, npy_name))
+    return parser
+
+
+def main():
+    args = get_parser().parse_args()
+
+    for npy_name in natsorted(args.npy):
+        arr = np.load(os.path.join(args.root_dir, npy_name))
         plot_confusion_matrix(
             cm=arr,
             target_names=get_label_names(),
             title=os.path.basename(npy_name),
-            export_name=f"tmp/cm_plot/{os.path.splitext(os.path.basename(npy_name))[0]}.png",
+            export_name=f"fig/{os.path.splitext(os.path.basename(npy_name))[0]}.png",
         )
 
 
