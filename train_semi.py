@@ -46,6 +46,10 @@ parser.add_argument("--port", type=int, default=None)
 
 def main():
     global args, cfg, prototype
+    
+    early_stopping_cnt = 0
+    early_stopping_patience = 3
+    
     args = parser.parse_args()
     seed = args.seed
     cfg = yaml.load(open(args.config, "r"), Loader=yaml.Loader)
@@ -217,10 +221,15 @@ def main():
                     "best_miou": best_prec,
                 }
                 if prec > best_prec:
+                    early_stopping_cnt = 0
                     best_prec = prec
                     torch.save(
                         state, osp.join(cfg["saver"]["snapshot_dir"], "ckpt_best.pth")
                     )
+                else:
+                    early_stopping_cnt += 1
+                    if early_stopping_cnt > early_stopping_patience:
+                        break
 
                 torch.save(state, osp.join(cfg["saver"]["snapshot_dir"], "ckpt.pth"))
 
