@@ -224,7 +224,7 @@ def main():
                     early_stopping_cnt = 0
                     best_prec = prec
                     torch.save(
-                        state, osp.join(cfg["saver"]["snapshot_dir"], "ckpt_best.pth")
+                        state, osp.join(cfg["saver"]["snapshot_dir"], f"ckpt_best_{best_prec * 100:0.2f}.pth")
                     )
                 else:
                     early_stopping_cnt += 1
